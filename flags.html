@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Βρες τους γείτονες</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <script src="countries.js">
+    </script>
+    <script>
+        // Ένας βοηθητικός πίνακας που θα περιέχει τις χώρες από το countries.js σε λίγο πιο βολική μορφή
+        const allCountries = new Array();
+		let darray=new Array();
+		let myborders=new Array();
+		let score=0;
+		let giros=0;
+		let countries=new Array();
+		let plithos=0;
+		let xora;
+		let nb;
+		let epitixies=0;
+		let apotixies=0;
+		
+		
+		const urlCountry = 'https://restcountries.eu/rest/v2/name/';
+		// πχ. allCountries['GRE'] = { code2: "GR", name: "Greece"}, ή κάτι παρόμοιο 
+
+        // Εδώ μπορείτε να βάλετε τον κώδικα για όλο το παιχνίδι
+        // Μπορείτε γράψετε κλάσεις που να έχουν κάποια συμπεριφορά, 
+        // π.χ. Game, PlayingCountry, Neighbour, ...
+        // ή να και ακολουθήσετε άλλη τακτική, που να σας είναι πιο προσιτή
+		class neighbour{
+		constructor(c,n,f){
+			this.code=c;
+			this.name=n;
+			this.flag=f;
+			this.id;
+		}
+		}
+		function findBorders(country) {
+			
+			myborders=[];
+			let restflags=[];
+			//console.log(urlCountry+country);
+			
+			fetch(urlCountry + country)
+			.then((response) => {
+        if (response.status === 200) {
+            return response.json();
+        } else throw new Error(response.status);
+		})
+		.then((data) => {
+        if (data[0].borders.length > 0) { // οι κωδικοί των γειτόνων
+            //const theCountries = [];
+			document.querySelector("#btn-next-round").disabled=true;
+			giros+=1;
+			document.querySelector("#giros").innerHTML="Γύρος: "+giros;
+            data[0].borders.forEach((item) => {
+				let thesi=countries.findIndex((countries)=>countries.code3===item);
+				myborders.push(new neighbour(countries[thesi].code,countries[thesi].name,country2emoji2(countries[thesi].code)));
+            });
+				plithos=myborders.length;  
+				let rf=plithos*2;
+				for (let i=1;i<=rf;i++){
+					do{
+					nb=countries[Math.floor(Math.random()*countries.length)];
+					//console.log(nb.name);
+					} 
+					while (nb.name ==xora.name || myborders.find((myborders)=>myborders.name===nb.name)!=undefined || restflags.find((restflags)=>restflags.name===nb.name)!=undefined );
+				    restflags.push(new neighbour(nb.code,nb.name,country2emoji2(nb.code)));
+					
+            		}
+                darray=myborders.concat(restflags);
+				darray=shuffleArray(darray);
+				gemisemain();
+		}
+		 else {
+			document.querySelector("#my-country").innerHTML+= "<span class='mxora'>"+" Δεν υπάρχουν γειτονικές χώρες</span>";
+			let npanel=document.querySelector("#neighbours-panel");
+			npanel.textContent ="";
+			}
+		})
+		 .catch ((err)=>{
+					document.querySelector("#my-country").innerHTML+= "<span class='mxora'>"+" Δεν βρέθηκαν οι γειτονικές χώρες</span>";
+					console.log(err.code);
+					let npanel=document.querySelector("#neighbours-panel");
+					npanel.textContent ="";
+					})
+}
+
+        function gemisemain(){
+		let npanel=document.querySelector("#neighbours-panel");
+		npanel.textContent ="";
+		darray.forEach(x=>{
+		let newdiv = document.createElement("div");
+		/* let newflag= document.createElement("p");
+		newflag.textContent = x.flag;
+		newflag.setAttribute("class", "neighbour");
+		newdiv.appendChild(newflag);
+		let newname= document.createElement("p");
+		newname.textContent = x.name;
+		newname.setAttribute("class", "neighbourname");
+		newdiv.appendChild(newname);*/
+		newdiv.innerHTML = x.flag+"<span style='font-size:0.2em'><br>"+x.name+"</span>";
+		newdiv.setAttribute("class", "simaies");
+		newdiv.setAttribute("id", `${x.code}`);
+		npanel.appendChild(newdiv);
+		x.id = document.querySelector(`#${x.code}`);
+		document.querySelector(`#${x.code}`).addEventListener("click", clickHandler);
+		
+		
+		});
+		}
+		function clickHandler(e) {
+		let x;
+		if (e.target.tagName =="SPAN") {
+		 x=e.target.parentNode.id;
+		 		}
+		else {
+		 x=e.target.id;
+		}		
+		if (myborders.find((myborders)=>myborders.code===x)!=undefined){
+		score+=5;
+		epitixies+=1;
+		if (e.target.tagName =="SPAN") {
+			e.target.parentNode.style.border="2px solid green";
+		}
+		else{
+			e.target.style.border="2px solid green";
+		}
+		let progress=document.querySelector("#progress");
+			sxediase(Math.round(epitixies/plithos*progress.width), progress.height,"blue");
+				
+		} else {
+		score-=3;
+		apotixies+=1;
+		if (e.target.tagName =="SPAN") {
+			e.target.parentNode.style.border="2px solid red";
+		}
+		else {
+			e.target.style.border="2px solid red";
+		}
+		}
+		document.querySelector("#score").innerHTML="Σκορ:"+score;
+		if (e.target.tagName =="SPAN") {
+		e.target.parentNode.removeEventListener("click",clickHandler);
+		}
+		e.target.removeEventListener("click",clickHandler);
+		if (epitixies==plithos || apotixies==plithos){
+			document.querySelector("#btn-next-round").disabled=false; 
+			let panel=document.querySelector("#next-round-panel");
+			let npanel=document.querySelector("#neighbours-panel");
+			panel.style.display="flex";
+			panel.style.zIndex=2;
+			panel.style.backgroundColor="lightgray";
+			panel.style.opacity=0.7;
+			panel.style.fontSize="2em";
+			if (epitixies==plithos){
+			panel.style.color="black";
+			panel.innerHTML="Tους βρήκατε όλους";
+			} else {
+			panel.style.color="red";
+			panel.innerHTML="Κρίμα Χάσατε";}
+			if (giros==8){
+			panel.style.color="black";
+			panel.innerHTML+="<br>To παιχνίδι ολοκληρωθήκε!! <br>Ξαναπαίξτε για να κερδίσετε περισσότερους πόντους!";
+			document.querySelector("#btn-next-round").disabled=true;
+		
+			}
+		}
+		
+		}
+		
+		function sxediase(w,h,c){
+				let progress=document.querySelector("#progress");
+				var pcanv = progress.getContext("2d");
+				pcanv.fillStyle = c;
+				pcanv.fillRect(0, 0, w, h);
+		}
+		document.addEventListener("DOMContentLoaded", () => {
+            //start a new Game
+            //...
+				let panel=document.querySelector("#next-round-panel");
+				let pososto=document.querySelector("#pososto");
+				let npanel=document.querySelector("#neighbours-panel");
+				let progress=document.querySelector("#progress");
+				document.querySelector("#btn-next-round").disabled=true;
+				sxediase(progress.width, progress.height,"lightgray");
+				panel.style.display="flex";
+				panel.style.zIndex=2;
+				panel.style.backgroundColor="lightgray";
+				panel.style.opacity=0.7;
+				panel.style.fontSize="1em";
+				panel.style.color="black";
+				panel.innerHTML="Πατήστε Νέο Παιχνίδι για να ξεκινήσετε.<br>	Πρέπει να βρείτε όλους τους γείτονες της χώρας που εμφανίζεται στην κορυφή για να κερδίσετε πόντους και να προχωρήσετε στον επόμενο γύρο. Το παιχνίδι ολοκληρώνεται μετά από 8 γύρους. Αν εμφανιστεί χώρα χωρίς γείτονες πατήστε επόμενη χώρα.";
+            //event listener to new game button
+            document.querySelector("#btn-new-game").addEventListener("click", () => {
+                // ...
+				let progress=document.querySelector("#progress");
+				sxediase(progress.width, progress.height,"lightgray");
+				giros=0;
+				score=0;
+				panel.style.display="none";
+				panel.style.zIndex=-1;
+				npanel.style.opacity=1;
+				document.querySelector("#giros").innerHTML="Γύρος: "+giros;
+				document.querySelector("#score").innerHTML="Σκορ: "+score;
+				countries=shuffleArray(countryObjects);
+					
+				xora=countries[Math.floor(Math.random()*countries.length)];
+				let mycountry=document.querySelector("#my-country");
+				let myflag=country2emoji2(xora.code);
+				mycountry.innerHTML="<span class='mflag'>"+myflag+"</span> "+"<span class='mxora'>"+xora.name+"</span>";
+				findBorders(xora.name);
+				
+			})
+
+            //event listener to next round button
+            document.querySelector("#btn-next-round").addEventListener("click", () => {
+                // ...
+				let progress=document.querySelector("#progress");
+				sxediase(progress.width, progress.height,"lightgray");
+				countries=shuffleArray(countryObjects);
+				epitixies=0;
+				apotixies=0;
+				plithos=0;
+				panel.style.display="none";
+				panel.style.zIndex=-1;
+				npanel.style.opacity=1;
+				xora=countries[Math.floor(Math.random()*countries.length)];
+				let mycountry=document.querySelector("#my-country");
+				let myflag=country2emoji2(xora.code);
+				mycountry.innerHTML="<span class='mflag'>"+myflag+"</span> "+"<span class='mxora'>"+xora.name+"</span>";
+				findBorders(xora.name);
+				
+            })
+
+        });
+    </script>
+</head>
+
+<body>
+    <div class="game-panel">
+        <!-- 
+                Γράψτε εδώ τον κώδικα HTML που χρειάζεστε για το παιχνίδι.
+                Κάποια από τα στοιχεία (elements) της σελίδας προστίθενται και
+                αφαιρούνται δυναμικά, μέσα από τη JavaScript, π.χ. οι σημαίες 
+                των γειτονικών χωρών κ.ά.
+            -->
+			<div id="sidebar">Βρες τους γείτονες
+				<div id="livescore">
+					<div id="giros">Γύρος: </div>
+					<div id="score">Σκορ: </div>
+				</div>
+				<div id="playbuttons">
+					<button id="btn-next-round">Επόμενη Χώρα</button><br>
+					<button id="btn-new-game">Νέο Παιχνίδι</button>
+				</div>
+			</div>
+			<div id="my-country"> </div>
+			<div id="pososto"><canvas id="progress"></canvas></div>
+			<div id="neighbours-panel"> </div>
+			<div id="next-round-panel">	Έχασες	</div>
+    </div>
+</body>
+<script>
+//Το παρακάτω αφορά μόνο τους χρήστες macOS.
+if (navigator.appVersion.indexOf("Macintosh")>0){
+  document.body.style.fontFamily = '"Open Sans"';
+}
+</script>
+</html>
